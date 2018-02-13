@@ -1,0 +1,17 @@
+---
+title: First post
+author: Frank Farach
+date: '2018-02-13'
+slug: first-post
+categories: [R]
+tags: [R, simulation]
+draft: yes
+---
+
+Testing first post.
+
+```{r}
+head(rnorm(10))
+```
+
+The end.
