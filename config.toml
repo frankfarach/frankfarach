@@ -1,4 +1,4 @@
-baseURL = "http://frankfarach.netlify.com/"
+baseURL = "http://frankfarach.rbind.io/"
 languageCode = "en-us"
 title = "Frank Farach"
 theme = "cactus"
@@ -14,8 +14,8 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 	enableRSS = true
 	enableToc = true
 
-	enableDisqus = false
-#	disqusShortname = "your_disqus_short_name"
+	enableDisqus = true
+	disqusShortname = "frank-farach-blog"
 
 
 	enableSummary = false
