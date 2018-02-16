@@ -4,6 +4,8 @@ title = "About"
 hidden = false
 +++
 
+## About Me
+
 My name is Frank Farach, and I am a data consultant at [Slalom Consulting](https://www.slalom.com/) in Seattle, WA. I love helping people and organizations use data to understand and solve meaningful problems, particularly in healthcare and medical research. I also enjoy programming with data in R, a language I've been using since 2004.
 
 Before I became a full-time consultant, I served as a staff scientist, product manager, and program manager at [Prometheus Research](https://prometheusresearch.com), a Connecticut-based informatics company that develops open-source clinical data [registry](https://www.prometheusresearch.com/rexregistry/) [solutions](https://www.prometheusresearch.com/rexstudy/) for biomedical researchers, healthcare providers, and professional medical societies.
