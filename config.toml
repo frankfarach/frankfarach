@@ -23,7 +23,8 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 	useDescriptionReplaceSummary = false
 
 
-	enableGoogleAnalytics = false
+	enableGoogleAnalytics = true
+	googleAnalytics = "UA-114331091-1"
 
 	enableTwitterCard = true
 	# The url for twitter card image, default is avatar.png in static/images directory
