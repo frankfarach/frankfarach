@@ -1,0 +1,56 @@
+---
+title: 'Taking flight with R'
+author: Frank Farach
+date: '2018-02-17'
+slug: taking-flight-with-r
+categories:
+  - R
+tags:
+  - math
+  - art
+  - visualization
+draft: yes
+---
+
+
+
+<p>Inspired by the upcoming exhibit on <a href="http://cocaseattle.org/exhibitions/artandmath">ART ∩ MATH</a> at Seattle’s Center on Contemporary Cart (COCA), I decided to replicate one of the pieces by the very talanted Iranian mathematical artist, <a href="https://twitter.com/naderi_yeganeh">Hamid Naderi Yeganeh</a>. Yeganeh provided the full mathematical equation as a caption to his piece, “Bird,” and I thought it would be fun to give it a test flight with R.</p>
+<pre class="r"><code>k &lt;- 1:9830
+
+X &lt;- function(k) {
+  sin(pi * k / 20000) ^ 12 *
+  (0.5 * cos(31 * pi * k / 10000) ^ 16 *
+  sin(6 * pi * k / 10000) + (1 / 6 * sin(31 * pi * k / 10000)) ^ 20) +
+  3 * k / 20000 + cos(31 * pi * k / 10000) ^ 6 *
+  sin((pi / 2) * ((k - 10000) / 10000) ^ 7 - pi / 5)
+}
+
+Y &lt;- function(k) {
+  -9 / 4 * cos(31 * pi * k / 10000) ^ 6 *
+  cos(pi / 2 * ((k - 10000) / 10000) ^ 7 - pi / 5) *
+  (2 / 3 + (sin(pi * k / 20000) * sin(3 * pi * k / 20000)) ^ 6) +
+  3 / 4 * cos(3 * pi * ((k - 10000) / 100000)) ^ 10 *
+  cos(9 * pi * ((k - 10000) / 100000)) ^ 10 *
+  cos(36 * pi * ((k - 10000) / 100000)) ^ 14 +
+  7 / 10 * ((k - 10000) / 10000) ^ 2
+}
+
+R &lt;- function(k) {
+  sin(pi * k / 20000) ^ 10 *
+  (1 / 4 * cos(31 * pi * k / 10000 + 25 * pi / 32) ^ 20 +
+  1 / 20 * cos(31 * pi * k / 10000) ^ 2) +
+  1 / 30 * (3 / 2 - cos(62 * pi * k / 10000) ^ 2)
+}
+
+bird &lt;- data.frame(x = X(k), y = Y(k), r = R(k))</code></pre>
+<p>Now for the easy part: drawing the bird. We need to use <code>coord_fixed()</code> because each of the 9830 circles has not only x and y coordinates but a particular radius defined on the same scale. On my first attempt, I used <code>geom_point</code> to map the circles’ radii to the size aesthetic. However, the result was distorted because the geom is not scaled 1-to-1 on the coordinate system in which the data is plotted. Fortunately, the <code>ggforce</code> package had exactly the function I needed: <code>geom_circle</code>.</p>
+<pre class="r"><code>library(ggforce)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>p &lt;- ggplot() +
+  geom_circle(aes(x0 = x, y0 = y, r = r), 
+              data = bird, 
+              n = 30) + 
+  coord_fixed() +
+  theme_void()
+p</code></pre>
+<p><img src="/post/2018-02-17-giving-the-bird-to-r_files/figure-html/birdfig-1.png" width="672" /></p>
