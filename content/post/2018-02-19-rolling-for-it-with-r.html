@@ -1,0 +1,122 @@
+---
+title: Rolling for it
+author: Frank Farach
+date: '2018-02-19'
+slug: rolling-for-it
+categories:
+  - R
+tags:
+  - simulation
+draft: yes
+---
+
+
+
+<p><a href="https://www.calliopegames.com/read/42/roll-for-it">Roll for It</a> is a favorite game in my family these days. The rules are simple: Each player can roll up to six dice in order to match the outcomes shown on one or more of three upturned cards. Matching all of the dice on a card with one’s own dice earns the player points toward the winning score of 40.</p>
+<p>Recently, after finishing a game, we kept rolling the dice together in larger and larger numbers – 10, 20, 40 at a time – and noticed an interesting pattern.</p>
+<p>TODO: The focal question</p>
+<div id="why-simulate" class="section level2">
+<h2>Why simulate?</h2>
+<p>There may be (and probably is) an analytic solution to this problem. At first, I tried to find one. But soon after, I realized I could get a better feel for the problem by simulating the data generating process of dice-rolling. To simulate is to build an explicit model of the system in question, which requires you to think clearly about the problem you are trying to solve.</p>
+</div>
+<div id="planning-the-simulation" class="section level2">
+<h2>Planning the Simulation</h2>
+<p>Let’s break this larger problem into more manageable pieces. For <code>n</code> dice that do <em>not</em> show the targeted outcome, <code>t</code>:</p>
+<ol style="list-style-type: decimal">
+<li>Roll <code>n</code> dice.</li>
+<li>Count the number of dice that do not show <code>t</code>; these are the dice that need to be rolled again.</li>
+</ol>
+<ul>
+<li>If there are no remaining dice that do not meet the target value (i.e., all dice show the target value), then return the number of rolls. END.</li>
+<li>If there are remaining dice that meet the target value, count the number of such dice – this is the new value, <code>n</code>.</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Go to step 1.</li>
+</ol>
+<p>If you’re wondering how we “return the number of rolls” in step 2.1 above, good catch! We’ll solve that problem a little later.</p>
+<div id="roll-the-dice" class="section level3">
+<h3>1. Roll the dice</h3>
+<p>First, we need a way to simulate a roll of a single, 6-sided die with equally probable outcomes of 1, 2, 3, 4, 5, 6. The <code>sample</code> function in R gives us what we need right out of the box. We only need to supply the argument <code>replace = TRUE</code> because we’re sampling with replacement to allow different dice on the same roll to have the same values.</p>
+<pre class="r"><code># Set a random seed for reproducibility
+set.seed(20180220)
+
+# Simulate a roll of 10 dice
+sample(1:6, 10, replace = TRUE)</code></pre>
+<pre><code>##  [1] 5 2 1 2 5 1 3 5 3 2</code></pre>
+<pre class="r"><code># 20 dice
+sample(1:6, 20, replace = TRUE) </code></pre>
+<pre><code>##  [1] 5 6 5 4 4 5 1 2 4 2 1 1 1 5 2 5 1 5 3 6</code></pre>
+<p>We’re really only concerned with varying the number of dice we roll at one time; everything else remains constant. We’re going to be simulating many such rolls with <code>n</code> 6-sided dice, so let’s wrap this behavior into a function that takes the same arguments in a more user-friendly order:</p>
+<pre class="r"><code>roll_n_dice &lt;- function(n_dice, dice_nums = 1:6, replace = TRUE) {
+  sample(dice_nums, n_dice, replace = replace)
+}
+
+# Spot check the function
+length(roll_n_dice(10) == 10)</code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="r"><code>length(roll_n_dice(20) == 20)</code></pre>
+<pre><code>## [1] 20</code></pre>
+</div>
+<div id="how-many-more-dice-do-we-need-to-roll" class="section level3">
+<h3>2. How many more dice do we need to roll?</h3>
+<p>What we need now is some way of determining whether another roll should occur, and if so, how many dice should be rolled.</p>
+<p>Suppose our target is the number 4, and we obseve the following as the outcome of our first roll of 6 dice:</p>
+<pre class="r"><code>n_dice &lt;- 6
+target &lt;- 4
+(first_roll &lt;- roll_n_dice(6))</code></pre>
+<pre><code>## [1] 2 6 6 1 6 2</code></pre>
+<pre class="r"><code>n_target &lt;- sum(first_roll == target)
+n_nontarget &lt;- n_dice - n_target</code></pre>
+<p>We can see 0 dice with 4 were rolled, which means that there are 6 - 0 = 6 dice still to be rolled. Had all 6 of our dice showed a 4, there wouldn’t have been any nontarget dice left to roll, so we would have stopped there.</p>
+<p>How can we represent this idea in a function? Our function will need the initial roll as input.</p>
+<pre class="r"><code>roll_ctrl &lt;- function(roll = roll_n_dice(6), target, roll_cnt = 1) {
+  n_nontarget = length(roll) - sum(roll == target)
+  if (n_nontarget == 0) return(roll_cnt) 
+  else {
+    roll_cnt = roll_cnt + 1
+    roll_ctrl(roll = roll_n_dice(n_nontarget), 
+              target = target, 
+              roll_cnt = roll_cnt)
+  }
+}</code></pre>
+<p>Let’s try this out on our target number, 4, a few times to see how many rolls it can take to obtain all 4s:</p>
+<pre class="r"><code>roll_ctrl(target = 4)</code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>roll_ctrl(target = 4)</code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>roll_ctrl(target = 4)</code></pre>
+<pre><code>## [1] 15</code></pre>
+</div>
+<div id="simulate-k-experiments-rolling-n-dice" class="section level3">
+<h3>3. Simulate <code>k</code> experiments rolling <code>n</code> dice</h3>
+<p>Now that we can simulate one “experiment” composed of rolling <code>n</code> dice until all the dice show the target number and counting the number of rolls it took to do that, we can extend the simulation to repeat this experiment as many times, <code>k</code>, as we’d like.</p>
+<p>There are lots of ways to implement this:</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 2.2.1     ✔ purrr   0.2.4
+## ✔ tibble  1.4.2     ✔ dplyr   0.7.4
+## ✔ tidyr   0.8.0     ✔ stringr 1.2.0
+## ✔ readr   1.1.1     ✔ forcats 0.2.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>rerun(3, roll_ctrl(target = 4))  # returns a list</code></pre>
+<pre><code>## [[1]]
+## [1] 21
+## 
+## [[2]]
+## [1] 6
+## 
+## [[3]]
+## [1] 5</code></pre>
+<pre class="r"><code>1:3 %&gt;% map_dbl(roll_ctrl, target = 4)  # returns vector of doubles</code></pre>
+<pre><code>## [1] 5 3 4</code></pre>
+<p>I find it easiest to work with a vector of values and thus prefer the map_* approach.</p>
+<p>For example, now it’s trivial to visualize the distribution of 1,000 rolls of 6 dice with a target value of 4:</p>
+<pre class="r"><code>1:1000 %&gt;% 
+  map_dbl(roll_ctrl, target = 4) %&gt;% 
+  hist()</code></pre>
+<p><img src="/post/2018-02-19-rolling-for-it-with-r_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>And, at last, we can extend this to answer our original question about the relationship between the number of dice to roll, and the number of rolls to expect to reach the target.</p>
+</div>
+</div>
