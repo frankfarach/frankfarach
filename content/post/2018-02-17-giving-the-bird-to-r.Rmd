@@ -6,13 +6,13 @@ slug: taking-flight-with-r
 categories:
   - R
 tags:
+  - R
   - math
   - art
   - visualization
-draft: yes
 ---
 
-Inspired by the upcoming exhibit on [ART ∩ MATH](http://cocaseattle.org/exhibitions/artandmath) at Seattle's Center on Contemporary Cart (COCA), I decided to replicate one of the pieces by the very talanted Iranian mathematical artist, [Hamid Naderi Yeganeh](https://twitter.com/naderi_yeganeh). Yeganeh provided the full mathematical equation as a caption to his piece, "Bird," and I thought it would be fun to give it a test flight with R.
+Inspired by the current exhibit on [ART ∩ MATH](http://cocaseattle.org/exhibitions/artandmath) at Seattle's Center on Contemporary Cart (COCA), I decided to replicate one of the pieces by the very talanted Iranian mathematical artist, [Hamid Naderi Yeganeh](https://twitter.com/naderi_yeganeh). Yeganeh provided the full mathematical equation as a caption to his piece, "Bird," and I thought it would be fun to give it a test flight in R. This turned out to be straightforward thanks to R's native vectorization:
 
 ```{r birddata}
 k <- 1:9830
@@ -45,7 +45,7 @@ R <- function(k) {
 bird <- data.frame(x = X(k), y = Y(k), r = R(k))
 ```
 
-Now for the easy part: drawing the bird. We need to use `coord_fixed()` because each of the `r length(k)` circles has not only x and y coordinates but a particular radius defined on the same scale. On my first attempt, I used `geom_point` to map the circles' radii to the size aesthetic. However, the result was distorted because the geom is not scaled 1-to-1 on the coordinate system in which the data is plotted. Fortunately, the `ggforce` package had exactly the function I needed: `geom_circle`.
+Now that we have a data frame of `x` and `y` coordinates, including a vector of radii for the circles centered at these coordinates, we just need to draw the circles. We need to use `coord_fixed()` because each of the `r format(length(k), big.mark = ",")` circles has not only x and y coordinates but a particular radius defined on the same scale. On my first attempt, I used `geom_point` to map the circles' radii to the size aesthetic. However, the result was distorted because the geom is not scaled 1-to-1 on the coordinate system in which the data is plotted. Fortunately, Thomas Lin Pedersen's [`ggforce`](https://github.com/thomasp85/ggforce) package had exactly the function I needed: `geom_circle`.
 
 ```{r birdfig, cache = TRUE}
 library(ggforce)
@@ -58,3 +58,5 @@ p <- ggplot() +
   theme_void()
 p
 ```
+
+Isn't math beautiful?
