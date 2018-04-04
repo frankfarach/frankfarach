@@ -1,0 +1,118 @@
+---
+title: 'TidyTuesday: My 4-Hour Challenge'
+author: Frank Farach
+date: '2018-04-03'
+categories:
+  - R
+tags:
+  - R
+  - TidyTuesday
+  - tidyverse
+  - R4DS
+slug: tidytuesday-my-4-hour-challenge
+draft: no
+---
+
+In the first quarter of 2018, I focused my data science education on expanding my R programming skills and setting up this blog in [Hugo](https://gohugo.io). I developed my first [R package](https://github.com/frankfarach/npi), an API wrapper to the U.S. National Provider Identification (NPI) [registry](https://npiregistry.cms.hhs.gov/), and created an R-powered Power BI custom visual for a client.
+
+Although I still plan to continue my work on these projects, I'm ready to start a new challenge. In my [consulting work](https://www.slalom.com/), I do a fair amount of data wrangling with SQL and visualization in Power BI. I'm eager to improve my skills in these areas in R, particularly since I learned most of what I know about R in grad school, before the modern [tidyverse](https://www.tidyverse.org/) era.
+
+# The Challenge
+
+Enter the [#TidyTuesday](https://twitter.com/search?q=%23tidytuesday) challenge, a weekly data wrangling and visualization challenge organized by the energetic and inspiring [R for Data Science](https://www.jessemaegan.com/post/r4ds-the-next-iteration/) (R4DS) online learning community, which I joined a few weeks ago. The challenge is to remake a visualization based on a publicly available dataset that has been cleaned up but not tidied. For more information about this challenge, check out the [TidyTuesday GitHub repo](https://github.com/rfordatascience/tidytuesday).
+
+This week, I'm limiting myself to spending only *4 hours* on the TidyTuesday challenge, including writing and publishing this post. As time allows, I'll refine the product and post the follow-up result. I'm doing this partly because I have other important commitments (hello family and full-time job!), but also because it creates conditions that are closer to real life.
+
+Here are the two visualizations in this week's challenge ([original source](https://onlinembapage.com/average-tuition-and-educational-attainment-in-the-united-states/)):
+
+![](https://onlinembapage.com/wp-content/uploads/2016/03/AverageTuition_Part1b.jpg)
+
+## Data Wrangling
+
+Let's load the packages we'll need, as described in the code comments below.
+
+```{r load-packages}
+library(tidyverse) # It's TidyTuesday after all!
+library(readxl)    # To read in Excel data the tidyverse way
+library(viridis)   # For awesome, accessible color palettes
+```
+
+Let's read in the source data, which in this case is an Excel (.xlsx) file hosted on the [TidyTuesday GitHub repo](https://github.com/rfordatascience/tidytuesday#week-1---us-tuition-costs):
+
+```{r load-data}
+file_path <- "data/us_avg_tuition.xlsx"
+r <- read_excel(file_path)
+r
+```
+
+It seems we have a mostly clean but untidy dataset. I'll first do some light cleaning by renaming `State` to `state` to follow the [tidy style guide](http://style.tidyverse.org/), and then by turning the column into a factor with levels corresponding to the two-letter U.S. state codes from the built-in datasets package. This will be more space-efficient than using full state names.
+
+```{r cleanup}
+r <- r %>% 
+  rename(state = State) %>% 
+  mutate(state_abb = factor(state.abb))
+r
+```
+
+Now for the tidying. In this dataset, each value is an observation of the "average in-state tuition and fees for one year of full-time study at public institutions" for a given school year. But values belonging to different school years are spread out across columns, which violates tidy principles. We need to `gather()` these values and index them by `year`:
+
+```{r}
+r %>% 
+  gather(year, tuitfee, `2004-05`:`2015-16`)
+```
+
+Ah, but wait!  For the visualizations, we'll ultimately need to have the "five-year percentage change in inflation-adjusted tuition and fees" for 2015-16. That'll be a little easier to calculate now while the data is in wide format.
+
+```{r percent-change}
+# Calculate the most recent 5-year % change in tuition and fees
+r <- r %>%
+  mutate(tuitfee_5yr_pct_chg = (`2015-16` - `2010-11`) / `2010-11` * 100) %>% 
+  gather(year, tuitfee, `2004-05`:`2015-16`) %>% 
+  select(state_abb, year, tuitfee, tuitfee_5yr_pct_chg) %>% 
+  filter(year == "2015-16")
+r
+```
+
+Now that's a tidy data frame!
+
+## Visualization
+
+We're ready to start visualizing. I'll begin with the bar chart at the bottom of the example since I don't know as much about creating cloropleth maps. I'm going to redo this bar chart as a [Cleveland-style dot plot](http://info.slis.indiana.edu/~katy/S637-S11/cleveland84.pdf) because the latter provides the [same information with less "ink"](https://www.edwardtufte.com/tufte/books_vdqi) and simplifies the perceptual decoding task.
+
+```{r dot-plot, fig.height = 7}
+r %>% 
+  ggplot() +
+  geom_point(aes(color = tuitfee_5yr_pct_chg,
+                 x = fct_reorder(state_abb, tuitfee),
+                 y = tuitfee)) +
+  ggtitle("Average tuition and fees in the United States",
+          subtitle = "Average tuition and fees for one year of full-time study at public institutions, 2015-16") +
+  xlab("State") +
+  ylab("\nAverage Total Tuition and Fees") +
+  labs(color = "5-Yr % Chg\n",
+       caption = "Source: https://bit.ly/2EeBXpf") +
+  scale_y_continuous(labels = scales::dollar) +
+  scale_color_viridis() +
+  coord_flip() +
+  theme_minimal()
+```
+
+# Summary
+
+Time is almost up, so here are some quick thoughts about what I'd do next if I had more time:
+
+  * Modify the color scale to use a divergent scale centered at 0, so it's more obvious when a state's tuition has gone down versus up
+  * Add a reference line or distinct geom to show the national average
+  * Adjust the `state` axis so the state labels are more legible
+  * Find a way to show more of the raw data -- what if 2010-11 was an awkward year with special causes at play?
+  * Learn how to create the map visualization
+  
+What I learned from this challenge:
+
+  * Four hours seemed like a lot, but it's not when you have to look up a lot of things online *and* write about it
+  * Writing out the coding steps and rendering the results in an R Markdown document was fun and helped me figure out what I needed to do next
+  * I have a lot to learn, especially when it comes to tweaking ggplot2 figures. To me, this is the most exciting part.
+  
+I hope to return to these lists and update the visualization in a later post. In the meantime, if you have any thoughts you'd like to share, I'd love to hear from you in the comments below or on [Twitter](https://twitter.com/@frankfarach).
+
+Many thanks to the R4DS community for setting up the first of what I hope will be many future #TidyTuesday challenges!
