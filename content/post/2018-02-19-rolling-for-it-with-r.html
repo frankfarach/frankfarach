@@ -92,12 +92,13 @@ n_nontarget &lt;- n_dice - n_target</code></pre>
 <p>Now that we can simulate one “experiment” composed of rolling <code>n</code> dice until all the dice show the target number and counting the number of rolls it took to do that, we can extend the simulation to repeat this experiment as many times, <code>k</code>, as we’d like.</p>
 <p>There are lots of ways to implement this:</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ─────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 2.2.1     ✔ purrr   0.2.4
-## ✔ tibble  1.4.2     ✔ dplyr   0.7.4
-## ✔ tidyr   0.8.0     ✔ stringr 1.3.0
-## ✔ readr   1.1.1     ✔ forcats 0.2.0</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Attaching packages ────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.1.0     ✔ purrr   0.2.5
+## ✔ tibble  1.4.2     ✔ dplyr   0.7.8
+## ✔ tidyr   0.8.1     ✔ stringr 1.4.0
+## ✔ readr   1.1.1     ✔ forcats 0.3.0</code></pre>
+<pre><code>## Warning: package &#39;stringr&#39; was built under R version 3.5.2</code></pre>
+<pre><code>## ── Conflicts ───────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>rerun(3, roll_ctrl(target = 4))  # returns a list</code></pre>
@@ -141,8 +142,13 @@ sims &lt;- starting_dice %&gt;%
   geom_density() +
   facet_wrap(~ dice_at_start, ncol = 5) </code></pre>
 <p><img src="/post/2018-02-19-rolling-for-it-with-r_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<pre class="r"><code>library(ggridges)
-sims %&gt;% 
+<pre class="r"><code>library(ggridges)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ggridges&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     scale_discrete_manual</code></pre>
+<pre class="r"><code>sims %&gt;% 
   ggplot(aes(x = value, y = dice_at_start)) + 
   geom_density_ridges(scale = 4, alpha = .5)</code></pre>
 <pre><code>## Picking joint bandwidth of 65.3</code></pre>
