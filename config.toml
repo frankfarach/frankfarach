@@ -1,7 +1,7 @@
 baseURL = "https://www.frankfarach.com/"
 languageCode = "en-us"
 title = "Frank Farach"
-theme = "hugo-cactus-theme"
+theme = "hugo-theme-cactus-plus"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [params]
