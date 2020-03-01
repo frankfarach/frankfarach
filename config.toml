@@ -45,7 +45,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 	olderPosts = ""
 	newerPosts = ""
-	copyright = "(c) 2019 Frank Farach | CC-BY-4.0"
+	copyright = "(c) 2018-2020 Frank Farach | CC-BY-4.0"
 
 	# show latest posts in single page
 	showLatestPosts = false
